@@ -1,68 +1,95 @@
-# TypeScript, ESLint 공통 설정 가이드
+# React 용 eslint, ts 설정 템플릿
 
-## 공통 설정 (Shared Configurations)
+이 템플릿은 React 애플리케이션 개발을 위한 TypeScript 및 ESLint 설정 구성을 제공합니다.
+템플릿에서 사용한 React 앱(`apps/react-app`)은 **Vite**를 기반으로 합니다.
 
-이 템플릿은 일관된 코드 품질과 효율적인 협업을 위해 공유 설정을 제공합니다. 모노레포 환경에서 공통 설정을 도입해야 하는 이유는 다음과 같습니다.
+### 1. TypeScript 설정 (@packages/ts-config)
 
-### 왜 공유 설정을 사용해야 하나요?
+TypeScript 설정 패키지는 React 애플리케이션을 위한 전용 설정 파일인 `react-app.json`을 별도로 포함합니다.
 
-- **개발 과정의 일관성 유지**: 여러 개의 서비스가 포함된 모노레포에서 각기 다른 규칙을 사용하면 코드 품질의 파편화가 발생합니다. 공유 설정을 통해 프로젝트 전체에 동일한 기준을 적용하여 안정적인 코드를 작성할 수 있습니다.
-- **생산성 극대화**: 새로운 애플리케이션이나 패키지를 추가할 때마다 복잡한 설정을 반복할 필요가 없습니다. 이미 검증된 설정을 확장(extend)하여 즉시 개발에 집중할 수 있는 환경을 제공합니다.
-- **중앙 집중식 유지보수**: 글로벌 코딩 규칙이 변경되거나 새로운 정책이 도입될 때, 수십 개의 프로젝트를 일일이 수정하는 대신 공유 패키지 한 곳만 업데이트하여 전체 워크스페이스에 즉시 반영할 수 있습니다.
+#### 1.1 구성 및 상세 내용
 
-### 1. `@packages/ts-config`
+- `packages/ts-config/react-app.json`: React 컴포넌트, JSX/TSX 처리 등 React 환경에 최적화된 컴파일러 옵션을 정의합니다.
 
-프로젝트 전반에서 사용할 수 있는 TypeScript 설정을 제공합니다.
+  ```json
+  // packages/ts-config/react-app.json
+  {
+    "extends": "./app.json",
+    "compilerOptions": {
+      "lib": ["ES2020", "DOM", "DOM.Iterable"],
+      "jsx": "react-jsx"
+    }
+  }
+  ```
 
-- `./app`: 브라우저 환경에서 실행되는 애플리케이션을 위한 설정 (`app.json`)
-- `./node`: Node.js 환경에서 실행되는 프로젝트를 위한 설정 (`node.json`)
+- `packages/ts-config/package.json`: `exports` 필드를 통해 외부에서 사용할 수 있도록 설정합니다.
 
-### 2. `@packages/eslint-config`
+  ```json
+  // packages/ts-config/package.json
+  {
+    "exports": {
+      "./react-app": "./react-app.json"
+      // ...
+    }
+  }
+  ```
 
-Airbnb 스타일 가이드를 기반으로 한 공통 ESLint 설정을 제공합니다. TypeScript 및 Prettier 설정이 포함되어 있습니다.
+#### 1.2 커스터마이징 가이드
 
-## 앱 레벨 사용 가이드 (Usage Guide)
-
-새로운 애플리케이션을 `apps/` 디렉토리에 추가할 때 공통 설정을 적용하는 방법은 다음과 같습니다.
-
-### 1. 의존성 추가
-
-해당 앱의 `package.json`에 공통 설정 패키지를 의존성으로 추가합니다.
+앱의 특성에 맞게 설정을 변경하고 싶다면 `compilerOptions`를 덮어씌울 수 있습니다.
 
 ```json
+// 예: 타겟 버전을 변경하거나 특정 검사 규칙을 완화하고 싶은 경우
 {
-  "devDependencies": {
-    "@packages/eslint-config": "workspace:*",
-    "@packages/ts-config": "workspace:*"
+  "extends": "@packages/ts-config/react-app",
+  "compilerOptions": {
+    "target": "ES2022", // 타겟 버전 변경
+    "noImplicitAny": false // 특정 규칙 완화
   }
 }
 ```
 
-### 2. TypeScript 설정 적용
+### 2. ESLint 설정 (@packages/eslint-config-react)
 
-`tsconfig.json` 또는 환경별 tsconfig 파일에서 공통 설정을 확장(extend)하여 사용합니다.
+React 전용 린트 규칙은 `@packages/eslint-config-react`라는 별도의 패키지로 분리하여 제공합니다.
 
-```json
-// apps/my-app/tsconfig.app.json
-{
-  "extends": "@packages/ts-config/app"
-}
-```
+#### 2.1 구성 및 상세 내용
 
-### 3. ESLint 설정 적용
+이 설정은 다음과 같은 규칙들을 조합하여 React 개발 환경을 제공합니다.
 
-`.eslintrc.cjs` 파일에서 공통 설정을 확장합니다. 필요에 따라 프로젝트별 설정을 추가할 수 있습니다.
+- **기반 규칙**: `@packages/eslint-config` (Airbnb Base + TypeScript + Prettier)
+- **React 추가 규칙**:
+  - `airbnb/hooks`: React Hooks 규칙 (exhaustive-deps 등)
+  - `plugin:react/jsx-runtime`: React 17+ JSX 변환 대응
+  - `plugin:react-refresh`: Vite Fast Refresh 관련 규칙 확인
+- **주요 커스텀 룰**:
+  - `react/jsx-filename-extension`: `.tsx` 파일에서도 JSX 사용 허용
+  - `react/require-default-props`: `off` (TypeScript 사용 시 선택적 props 처리가 더 명확하므로 비활성화)
+  - `react/jsx-props-no-spreading`: `warn` (과도한 props 전파 주의)
+
+#### 2.2 왜 별도의 패키지로 만들었나요?
+
+기본 `@packages/eslint-config`에 React 설정을 통합할 경우, React를 사용하지 않는 프로젝트(예: Node.js 서버, 유틸리티 라이브러리 등)에서도 React 관련 플러그인(`eslint-plugin-react` 등)에 대한 불필요한 종속성이 발생합니다.
+이를 방지하고, 필요한 곳에서만 React 관련 종속성을 설치하도록 하기 위해 설정을 분리했습니다.
+
+#### 2.3 커스터마이징 가이드
+
+특정 규칙이 프로젝트 성격에 맞지 않는다면 `.eslintrc.cjs`의 `rules` 필드에서 재정의할 수 있습니다.
 
 ```javascript
-// apps/my-app/.eslintrc.cjs
+// apps/react-app/.eslintrc.cjs
 module.exports = {
-  extends: ['@packages/eslint-config'],
-  settings: {
-    'import/resolver': {
-      typescript: {
-        project: ['apps/my-app/tsconfig.app.json'],
-      },
-    },
+  extends: ['@packages/eslint-config-react'],
+  rules: {
+    // 예: console 사용을 허용하고 싶은 경우
+    'no-console': 'off',
+
+    // 예: props spreading 경고를 끄고 싶은 경우
+    'react/jsx-props-no-spreading': 'off',
   },
 }
 ```
+
+#### (참고) PeerDependencies 관련
+
+기본적으로 편의를 위해 `dependencies`에 플러그인을 포함하고 있지만, 앱에서 직접 의존성을 관리하려면 `peerDependencies` 방식으로 전환할 수 있습니다. (상세 내용은 생략하지만 필요시 `package.json` 수정 및 앱 측 설치 필요)
