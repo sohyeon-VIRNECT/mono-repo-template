@@ -4,7 +4,8 @@
   "private": true,
   "exports": {
     "./app": "./app.json",
-    "./node": "./node.json"
+    "./node": "./node.json",
+    "./react-app": "./react-app.json"
   },
   "peerDependencies": {
     "typescript": "^5.2.2"
