@@ -1,5 +1,5 @@
 module.exports = {
-  extends: ['@packages/eslint-config'],
+  extends: ['@packages/eslint-config-react'],
   settings: {
     'import/resolver': {
       typescript: {
