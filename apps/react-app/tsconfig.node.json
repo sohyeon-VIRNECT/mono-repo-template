@@ -1,0 +1,4 @@
+{
+  "extends": "@packages/ts-config/node",
+  "include": ["vite.config.ts"]
+}
