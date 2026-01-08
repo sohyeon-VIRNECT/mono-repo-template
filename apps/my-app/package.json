@@ -3,6 +3,14 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
-  "scripts": {},
-  "devDependencies": {}
+  "scripts": {
+    "lint": "eslint . --ext ts,tsx,js,jsx",
+    "lint:fix": "eslint . --fix --ext ts,tsx,js,jsx"
+  },
+  "devDependencies": {
+    "@packages/eslint-config": "workspace:*",
+    "@packages/ts-config": "workspace:*",
+    "eslint": "^8.57.0",
+    "typescript": "^5.2.2"
+  }
 }

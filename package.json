@@ -1,6 +1,12 @@
 {
   "name": "monorepo-template",
   "private": true,
-  "scripts": {},
-  "devDependencies": {}
+  "scripts": {
+    "lint": "pnpm -r lint",
+    "lint:fix": "pnpm -r lint:fix",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,css,html}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3"
+  }
 }
