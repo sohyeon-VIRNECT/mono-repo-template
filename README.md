@@ -1,41 +1,68 @@
-# 모노레포 템플릿
+# TypeScript, ESLint 공통 설정 가이드
 
-이 저장소는 재사용 가능한 모노레포 구성을 제공하는 템플릿이다. 효율적인 패키지 관리와 공통 설정을 공유하여 일관된 개발 환경을 구축할 수 있도록 설계했다.
+## 공통 설정 (Shared Configurations)
 
-## 앱 및 패키지 구조
+이 템플릿은 일관된 코드 품질과 효율적인 협업을 위해 공유 설정을 제공합니다. 모노레포 환경에서 공통 설정을 도입해야 하는 이유는 다음과 같습니다.
 
-이 프로젝트는 다음과 같은 디렉토리 구조를 따른다:
+### 왜 공유 설정을 사용해야 하나요?
 
-```bash
-/
-├─ apps/        # 실제 실행되는 애플리케이션
-└─ packages/    # 여러 앱에서 공통으로 사용하는 라이브러리
+- **개발 과정의 일관성 유지**: 여러 개의 서비스가 포함된 모노레포에서 각기 다른 규칙을 사용하면 코드 품질의 파편화가 발생합니다. 공유 설정을 통해 프로젝트 전체에 동일한 기준을 적용하여 안정적인 코드를 작성할 수 있습니다.
+- **생산성 극대화**: 새로운 애플리케이션이나 패키지를 추가할 때마다 복잡한 설정을 반복할 필요가 없습니다. 이미 검증된 설정을 확장(extend)하여 즉시 개발에 집중할 수 있는 환경을 제공합니다.
+- **중앙 집중식 유지보수**: 글로벌 코딩 규칙이 변경되거나 새로운 정책이 도입될 때, 수십 개의 프로젝트를 일일이 수정하는 대신 공유 패키지 한 곳만 업데이트하여 전체 워크스페이스에 즉시 반영할 수 있습니다.
+
+### 1. `@packages/ts-config`
+
+프로젝트 전반에서 사용할 수 있는 TypeScript 설정을 제공합니다.
+
+- `./app`: 브라우저 환경에서 실행되는 애플리케이션을 위한 설정 (`app.json`)
+- `./node`: Node.js 환경에서 실행되는 프로젝트를 위한 설정 (`node.json`)
+
+### 2. `@packages/eslint-config`
+
+Airbnb 스타일 가이드를 기반으로 한 공통 ESLint 설정을 제공합니다. TypeScript 및 Prettier 설정이 포함되어 있습니다.
+
+## 앱 레벨 사용 가이드 (Usage Guide)
+
+새로운 애플리케이션을 `apps/` 디렉토리에 추가할 때 공통 설정을 적용하는 방법은 다음과 같습니다.
+
+### 1. 의존성 추가
+
+해당 앱의 `package.json`에 공통 설정 패키지를 의존성으로 추가합니다.
+
+```json
+{
+  "devDependencies": {
+    "@packages/eslint-config": "workspace:*",
+    "@packages/ts-config": "workspace:*"
+  }
+}
 ```
 
-- **`apps/`**: 실제 독립적으로 실행되는 애플리케이션들이 위치한다. (예: React, Vue, Next.js 앱 등)
-- **`packages/`**: 여러 애플리케이션에서 공유하는 패키지들이 위치한다.
-  - 예:
-    - `ts-config`: 공유 TypeScript 설정
-    - `eslint-config`: 공유 Lint 설정 및 스타일 가이드
-    - 기타 공유 컴포넌트나 유틸리티 라이브러리
+### 2. TypeScript 설정 적용
 
-## 사용 도구
+`tsconfig.json` 또는 환경별 tsconfig 파일에서 공통 설정을 확장(extend)하여 사용합니다.
 
-- **pnpm**: 고성능 및 디스크 효율성이 뛰어난 패키지 매니저로, 모노레포 환경에서 패키지 간 의존성 관리와 연결을 위해 사용한다.
+```json
+// apps/my-app/tsconfig.app.json
+{
+  "extends": "@packages/ts-config/app"
+}
+```
 
-## 패키지 연결 방식 (pnpm Workspace)
+### 3. ESLint 설정 적용
 
-pnpm은 `pnpm-workspace.yaml` 설정 파일을 통해 `apps/`와 `packages/` 내의 각 프로젝트를 하나의 워크스페이스로 관리한다.
+`.eslintrc.cjs` 파일에서 공통 설정을 확장합니다. 필요에 따라 프로젝트별 설정을 추가할 수 있습니다.
 
-### 어떻게 패키지를 연결하는가?
-
-1.  **심볼릭 링크 (Symbolic Links)**: pnpm은 설치 시 워크스페이스 내의 다른 패키지를 참조할 때 `node_modules` 폴더 내에 심볼릭 링크를 생성하여 직접 연결한다. 이를 통해 실제 파일을 복사하지 않고도 로컬 패키지를 마치 외부 라이브러리처럼 참조할 수 있다.
-2.  **`workspace:` 프로토콜**: `package.json` 내에서 워크스페이스 내부 패키지를 의존성으로 추가할 때 다음과 같이 사용한다:
-    ```json
-    {
-      "dependencies": {
-        "@repo/ts-config": "workspace:*"
-      }
-    }
-    ```
-    이 방식은 pnpm이 해당 패키지를 원격 레지스트리가 아닌 로컬 워크스페이스 내에서 찾도록 보장하며, 배포(publish) 시에는 자동으로 실제 버전으로 변환된다.
+```javascript
+// apps/my-app/.eslintrc.cjs
+module.exports = {
+  extends: ['@packages/eslint-config'],
+  settings: {
+    'import/resolver': {
+      typescript: {
+        project: ['apps/my-app/tsconfig.app.json'],
+      },
+    },
+  },
+}
+```
