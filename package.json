@@ -1,0 +1,6 @@
+{
+  "name": "monorepo-template",
+  "private": true,
+  "scripts": {},
+  "devDependencies": {}
+}
