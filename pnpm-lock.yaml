@@ -6,7 +6,14 @@ settings:
 
 importers:
 
-  .: {}
+  .:
+    devDependencies:
+      '@biomejs/biome':
+        specifier: ^2.3.11
+        version: 2.3.11
+      '@packages/biome-config':
+        specifier: workspace:*
+        version: link:packages/biome-config
 
   apps/my-app:
     devDependencies:

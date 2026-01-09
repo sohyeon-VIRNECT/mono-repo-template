@@ -1,9 +1,13 @@
 {
-	"name": "monorepo-template",
-	"private": true,
-	"scripts": {
-		"lint": "pnpm -r --if-present lint",
-		"format": "pnpm -r --if-present format",
-		"check": "pnpm -r --if-present check"
-	}
+  "name": "monorepo-template",
+  "private": true,
+  "scripts": {
+    "lint": "pnpm -r --if-present lint",
+    "format": "pnpm -r --if-present format",
+    "check": "pnpm -r --if-present check"
+  },
+  "devDependencies": {
+    "@packages/biome-config": "workspace:*",
+    "@biomejs/biome": "^2.3.11"
+  }
 }
