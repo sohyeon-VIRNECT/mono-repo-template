@@ -4,5 +4,10 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "@packages/biome-config": "workspace:*",
+    "@packages/ts-config": "workspace:*",
+    "@biomejs/biome": "^2.3.11",
+    "typescript": "^5.2.2"
+  }
 }
