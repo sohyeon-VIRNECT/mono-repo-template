@@ -1,145 +1,116 @@
-# 🛠 Biome 공통 설정 가이드 (`base-biome-config`)
+# React 용 biome, ts 설정 템플릿
 
-이 템플릿은 코드 품질 유지와 일관된 포맷팅을 위해 [Biome](https://biomejs.dev/)을 사용합니다. 공통 설정 패키지인 `@packages/biome-config`를 사용하여 프로젝트 전체에 동일한 규칙을 적용할 수 있습니다.
+이 템플릿은 React 애플리케이션 개발을 위한 TypeScript 및 Biome 설정 구성을 제공합니다.
+템플릿에서 사용한 React 앱(`apps/react-app`)은 **Vite**를 기반으로 생성되었습니다.
 
-## `@packages/biome-config`
-`@packages/biome-config`는 모노레포 전체에서 공유되는 Biome 설정 파일입니다. Lint 규칙, 포맷팅 스타일이 정의되어 있어, 개별 프로젝트에서 매번 설정을 반복할 필요가 없습니다.
+### 1. TypeScript 설정 (@packages/ts-config)
 
-### 💡 참고
-- **Lint**: `base-eslint-ts-config`에서는 Airbnb 룰을 기반으로 엄격하게 관리했으나, Biome 도입 시에는 프로젝트의 유연성과 생산성을 위해 **`recommended`** 설정을 채택했습니다.
-  - **이유**: Airbnb 룰은 매우 정교한 기준을 제시하지만, 현대적인 프론트엔드 개발 환경에서는 과도하게 엄격한 제약이 오히려 개발 속도를 늦춘다는 비판이 많아지는 추세입니다.
-  - **Biome의 선택**: Biome의 권장 규칙은 최신 JavaScript/TypeScript 에코시스템에 최적화되어 있습니다. 실질적인 오류 방지에 집중하면서도 개발 흐름을 방해하지 않는 실용적인 균형을 제공합니다.
+TypeScript 설정 패키지는 React 애플리케이션을 위한 전용 설정 파일인 `react-app.json`을 별도로 포함합니다.
 
+#### 1.1 구성 및 상세 내용
 
-- **Formatter**: 기존 Prettier와 동일한 스타일 설정을 유지하였습니다. 
+- `packages/ts-config/react-app.json`: React 컴포넌트, JSX/TSX 처리 등 React 환경에 최적화된 컴파일러 옵션을 정의합니다.
 
+  ```json
+  // packages/ts-config/react-app.json
+  {
+    "extends": "./app.json",
+    "compilerOptions": {
+      "lib": ["ES2020", "DOM", "DOM.Iterable"],
+      "jsx": "react-jsx"
+    }
+  }
+  ```
 
-## 🔧 적용 방법
+- `packages/ts-config/package.json`: `exports` 필드를 통해 외부에서 사용할 수 있도록 설정합니다.
 
-새로운 앱이나 패키지에 Biome 설정을 적용하는 방법을 설명합니다.
-- `apps/my-app`은 아래 가이드에 따라 설정이 완료된 예시 프로젝트입니다. 설정 과정에서 이해가 되지 않거나 실제 적용 사례를 직접 확인하고 싶다면 `apps/my-app`을 참고해 주세요.
+  ```json
+  // packages/ts-config/package.json
+  {
+    "exports": {
+      "./react-app": "./react-app.json"
+      // ...
+    }
+  }
+  ```
 
-### 1. 의존성 추가 (`package.json`)
-설정을 적용할 앱의 `package.json`에 공통 설정 패키지와 `@biomejs/biome`를 추가합니다.
+#### 1.2 커스터마이징 가이드
+
+앱의 특성에 맞게 설정을 변경하고 싶다면 `compilerOptions`를 덮어씌울 수 있습니다.
 
 ```json
+// 예: 타겟 버전을 변경하거나 특정 검사 규칙을 완화하고 싶은 경우
 {
-  "devDependencies": {
-    "@packages/biome-config": "workspace:*",
-    "@biomejs/biome": "^2.3.11"
+  "extends": "@packages/ts-config/react-app",
+  "compilerOptions": {
+    "target": "ES2022", // 타겟 버전 변경
+    "noImplicitAny": false // 특정 규칙 완화
   }
 }
 ```
 
-### 2. 설정 파일 생성 (`biome.json`)
-앱의 루트 폴더에 `biome.json` 파일을 생성하고 공통 설정을 확장합니다.
+### 2. React Biome 설정 (@packages/biome-config)
+
+Biome 설정 패키지는 일반적인 환경을 위한 기본 설정과 React 프로젝트를 위한 전용 설정을 각각 제공합니다.
+
+#### 2.1 구성 및 상세 내용
+
+- `packages/biome-config/react-biome.json`: React 권장 규칙(`recommended`)을 활성화하고, 기본 설정을 확장합니다.<br/>자세한 규칙 내용은 [Biome React 공식 문서](https://biomejs.dev/linter/domains/#react)를 참고하세요.
+
+  ```json
+  // packages/biome-config/react-biome.json
+  {
+    "$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
+    "extends": ["./biome.json"],
+    "linter": {
+      "domains": {
+        "react": "recommended"
+      }
+    }
+  }
+  ```
+
+- `packages/biome-config/package.json`: 외부 프로젝트에서 `./react` 경로로 React 전용 설정을 불러올 수 있도록 노출합니다.
+
+  ```json
+  // packages/biome-config/package.json
+  {
+    "exports": {
+      ".": "./biome.json",
+      "./react": "./react-biome.json"
+    }
+  }
+  ```
+
+#### 2.2 적용 방법
+
+`react-app`앱의 `biome.json`에서 `@packages/biome-config/react`를 확장하여 사용합니다.
 
 ```json
+// apps/react-app/biome.json
 {
   "$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
-  "extends": ["@packages/biome-config"]
+  "extends": ["@packages/biome-config/react"]
 }
 ```
 
-공통 규칙 외에 별도의 설정이 필요하거나 일부 규칙을 제외하고 싶다면, 규칙이나 설정을 덮어쓸 수 있습니다.
+#### 2.3 커스터마이징 가이드
+
+특정 규칙이 프로젝트 성격에 맞지 않는다면 `biome.json`에서 해당 규칙을 재정의할 수 있습니다.
 
 ```json
+// apps/react-app/biome.json
 {
-  "extends": ["@packages/biome-config"],
+  "extends": ["@packages/biome-config/react"],
   "linter": {
     "rules": {
-      "suspicious": {
-        "noExplicitAny": "off"
+      "correctness": {
+        "useJsxKeyInIterable": "off" // 예: 반복문 내 JSX key 검사 비활성화
+      },
+      "complexity": {
+        "noUselessFragments": "warn" // 예: 불필요한 Fragment 사용을 에러가 아닌 경고로 표시
       }
     }
   }
 }
 ```
-
-### 3. 스크립트 등록 (`package.json`)
-Biome을 간편하게 사용하기 위해 `package.json`의 `scripts` 영역에 다음 명령어를 등록합니다.
-
-```json
-// apps/my-app/package.json
-{
-  "scripts": {
-    "lint": "biome lint --write",
-    "format": "biome format --write",
-    "check": "biome check --write"
-  }
-}
-
-```
-
-- **`lint`**: 코드 품질 검사 및 자동 수정을 수행합니다.
-- **`format`**: 코드 스타일 포맷팅을 수행합니다.
-- **`check`**: Lint와 Format을 동시에 수행하는 통합 명령어입니다.
-
-
-### 4. 루트(Root)에서 한 번에 실행하기
-각 앱이나 패키지에 일일이 들어가 실행하지 않고, 프로젝트 최상단(Root)에서 모든 프로젝트의 스크립트를 한 번에 호출할 수 있습니다. 
-
-이를 위해 루트의 `package.json`에 다음과 같이 공통 스크립트가 등록되어 있습니다.
-
-```json
-// package.json (Root)
-{
-  "scripts": {
-    "lint": "pnpm -r --if-present lint",
-    "format": "pnpm -r --if-present format",
-    "check": "pnpm -r --if-present check"
-  }
-}
-```
-
-- **실행 예시**:
-```bash
-# 전체 프로젝트의 Lint 검사 및 자동 수정
-pnpm lint
-
-# 전체 프로젝트의 스타일 포맷팅
-pnpm format
-
-# 전체 프로젝트 통합 체크
-pnpm check
-```
-
-
-
-## 💻 VS Code 및 에디터 설정
-파일 저장 시 Biome 규칙에 맞춰 자동으로 포맷팅을 적용하기 위한 설정입니다. 이 가이드는 VS Code뿐만 아니라 이를 기반으로 하는 **Cursor**, **Antigravity** 등의 에디터에서도 동일하게 적용됩니다.
-
-### 1. Biome 익스텐션 설치
-에디터에서 Biome을 정상적으로 사용하려면 마켓플레이스에서 **[Biome](https://marketplace.visualstudio.com/items?itemName=biomejs.biome)** 익스텐션을 설치해야 합니다.
-
-### 2. 에디터 설정 (`.vscode/settings.json`)
-프로젝트의 `.vscode/settings.json`에 아래 설정을 추가하여 Biome을 기본 포맷터로 지정하고 저장 시 자동 최적화 기능을 활성화합니다.
-
-```json
-{
-  "editor.defaultFormatter": "biomejs.biome",
-  "editor.codeActionsOnSave": {
-    "source.fixAll.biome": "explicit",
-    "source.organizeImports.biome": "explicit"
-  }
-}
-```
-
-#### ⚠️ 프로젝트 최상단(Root)에 `biome.json` 추가
-에디터의 자동 포맷팅 기능이 동작하려면 **프로젝트 최상단(Root)에 `biome.json`이 존재**해야 합니다. 에디터는 이 루트 설정을 기준으로 전체 워크스페이스의 포맷팅 규칙을 인식합니다.
-
-### 루트 레벨의 Linter 비활성화
-각 앱이나 패키지는 독립적인 린트 규칙을 가질 수 있습니다. 루트 레벨에서 `linter`를 활성화 할 경우 충돌이 발생할 수 있으므로, 루트 `biome.json`에서는 린트를 비활성화하고 **포맷팅 규칙만** 전역적으로 적용되도록 구성했습니다.
-
-```json
-// biome.json (Root)
-{
-  "$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
-  "extends": ["@packages/biome-config"],
-  "linter": {
-    "enabled": false
-  }
-}
-```
-
-
