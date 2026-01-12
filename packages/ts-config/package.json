@@ -1,12 +1,13 @@
 {
-	"name": "@packages/ts-config",
-	"version": "0.0.1",
-	"private": true,
-	"exports": {
-		"./app": "./app.json",
-		"./node": "./node.json"
-	},
-	"peerDependencies": {
-		"typescript": "^5.2.2"
-	}
+  "name": "@packages/ts-config",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    "./app": "./app.json",
+    "./node": "./node.json",
+    "./react-app": "./react-app.json"
+  },
+  "peerDependencies": {
+    "typescript": "^5.2.2"
+  }
 }
